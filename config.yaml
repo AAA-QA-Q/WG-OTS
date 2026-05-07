@@ -1,0 +1,19 @@
+# input
+REF: "example/genome.fa"
+GFF: "example/genomic.gff"
+
+ctrl_fastq1: "example/ctrl.1.fq.gz"
+ctrl_fastq2: "example/ctrl.2.fq.gz"
+inj_fastq1: "example/inj.1.fq.gz"
+inj_fastq2: "example/inj.2.fq.gz"
+
+# bcftools filter
+# MIN_DP: minimum read depth threshold for variant filtering.
+# Recommended setting: sequencing depth × 3/4.
+# Variants with DP lower than 3/4 of the expected sequencing depth will be filtered out.
+MIN_DP: 8
+
+# snpEff
+# SNPEFF_MEM_GB: Java heap memory (in GB) used for building the snpEff annotation database.
+# If database construction still fails due to memory issues, increase this value.
+SNPEFF_MEM_GB: 200

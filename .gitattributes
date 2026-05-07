@@ -1,0 +1,1 @@
+example/*.fq.gz filter=lfs diff=lfs merge=lfs -text
