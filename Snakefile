@@ -1,4 +1,5 @@
 import os
+
 configfile: "config.yaml"
 
 REF = config["REF"]
@@ -8,7 +9,9 @@ CTRL_R1 = config["ctrl_fastq1"]
 CTRL_R2 = config["ctrl_fastq2"]
 INJ_R1  = config["inj_fastq1"]
 INJ_R2  = config["inj_fastq2"]
+
 MIN_DP = int(config["MIN_DP"])
+SNPEFF_MEM_GB = int(config["SNPEFF_MEM_GB"])
 
 GENOME_DIR = "01_genome"
 REF_LINK = f"{GENOME_DIR}/ref.fa"
@@ -16,6 +19,9 @@ GFF_LINK = f"{GENOME_DIR}/genome.gff"
 GENOME_CDS = f"{GENOME_DIR}/genome.cds"
 GENOME_PEP = f"{GENOME_DIR}/genome.pep"
 GENOME_GTF = f"{GENOME_DIR}/genome.gtf"
+
+# samtools faidx for the real reference used by DeepSomatic
+REF_FAI = REF + ".fai"
 
 FASTP_DIR = "02_fastp"
 
@@ -48,8 +54,8 @@ SORTED_INJ_BAM  = f"{BWA_DIR}/inj.sorted.bam"
 RG_CTRL_BAM = f"{BWA_DIR}/ctrl.sorted.rg.bam"
 RG_INJ_BAM  = f"{BWA_DIR}/inj.sorted.rg.bam"
 
-RG_CTRL_BAI = f"{BWA_DIR}/ctrl.sorted.rg.bam.bai"
-RG_INJ_BAI  = f"{BWA_DIR}/inj.sorted.rg.bam.bai"
+RG_CTRL_BAI = f"{RG_CTRL_BAM}.bai"
+RG_INJ_BAI  = f"{RG_INJ_BAM}.bai"
 
 DEEPSOMATIC_IMAGE = "google/deepsomatic:1.10.0"
 DEEPSOMATIC_DIR = "04_deepsomatic"
@@ -68,7 +74,6 @@ PASS_INDEL_DP_VCF = f"{BCFTOOLS_DIR}/inj_vs_ctrl.pass.indel.MIN_DPfilter.vcf.gz"
 PASS_INDEL_DP_TBI = f"{PASS_INDEL_DP_VCF}.tbi"
 
 SNPEFF_DIR = "06_snpeff"
-SNPEFF_MEM_GB = int(config["SNPEFF_MEM_GB"])
 SNPEFF_CONFIG = f"{SNPEFF_DIR}/snpEff.config"
 SNPEFF_DATA_DIR = f"{SNPEFF_DIR}/data"
 SNPEFF_GENOME = "ann_database"
@@ -83,9 +88,12 @@ SNPEFF_BUILD_DONE = f"{SNPEFF_GENOME_DIR}/.build.done"
 
 SNPEFF_ANN_VCF = f"{SNPEFF_DIR}/inj_vs_ctrl.pass.indel.MIN_DPfilter.ann.vcf.gz"
 SNPEFF_ANN_TBI = f"{SNPEFF_ANN_VCF}.tbi"
+
 FRAMESHIFT_VCF = f"{SNPEFF_DIR}/inj_vs_ctrl.pass.indel.MIN_DPfilter.ann.frameshift_variant.vcf.gz"
 FRAMESHIFT_TBI = f"{FRAMESHIFT_VCF}.tbi"
+
 FINAL_CAS9_RESULTS = f"{SNPEFF_DIR}/inj_vs_ctrl.final.cas9.results"
+
 
 rule all:
     input:
@@ -94,6 +102,7 @@ rule all:
         GENOME_CDS,
         GENOME_PEP,
         GENOME_GTF,
+        REF_FAI,
         CLEAN_CTRL_R1,
         CLEAN_CTRL_R2,
         CLEAN_INJ_R1,
@@ -126,6 +135,7 @@ rule all:
         FRAMESHIFT_TBI,
         FINAL_CAS9_RESULTS
 
+
 rule prepare_genome_links:
     input:
         ref=REF,
@@ -139,6 +149,7 @@ rule prepare_genome_links:
         ln -sf "$(realpath {input.ref})" {output.ref}
         ln -sf "$(realpath {input.gff})" {output.gff}
         """
+
 
 rule gffread_extract:
     input:
@@ -159,6 +170,20 @@ rule gffread_extract:
             -T \
             -o {output.gtf}
         """
+
+
+rule faidx_ref:
+    input:
+        ref=REF
+    output:
+        fai=REF_FAI
+    conda:
+        "env.yaml"
+    shell:
+        r"""
+        samtools faidx {input.ref}
+        """
+
 
 rule fastp_clean:
     input:
@@ -185,6 +210,7 @@ rule fastp_clean:
             -w {threads}
         """
 
+
 rule bwa_index:
     input:
         REF_LINK
@@ -200,6 +226,8 @@ rule bwa_index:
         r"""
         bwa index {input}
         """
+
+
 rule bwa_mem_sort:
     input:
         ref=REF_LINK,
@@ -225,6 +253,7 @@ rule bwa_mem_sort:
           | samtools sort -@ {params.sort_threads} -m 2G -T {BWA_DIR}/{wildcards.sample}.tmp -o {output.bam}
         """
 
+
 rule add_read_group:
     input:
         bam=f"{BWA_DIR}/{{sample}}.sorted.bam"
@@ -248,12 +277,15 @@ rule add_read_group:
         samtools index -@ {threads} {output.bam}
         """
 
+
 rule run_deepsomatic:
     input:
         normal_bam=RG_CTRL_BAM,
         normal_bai=RG_CTRL_BAI,
         tumor_bam=RG_INJ_BAM,
-        tumor_bai=RG_INJ_BAI
+        tumor_bai=RG_INJ_BAI,
+        ref=REF,
+        fai=REF_FAI
     output:
         vcf=DEEPSOMATIC_VCF,
         gvcf=DEEPSOMATIC_GVCF,
@@ -303,6 +335,8 @@ rule run_deepsomatic:
         touch {output.log_done}
         touch {output.intermediate_done}
         """
+
+
 rule bcftools_pass_indel:
     input:
         vcf=DEEPSOMATIC_VCF
@@ -323,6 +357,7 @@ rule bcftools_pass_indel:
 
         bcftools index -t {output.vcf}
         """
+
 
 rule bcftools_min_dp_filter:
     input:
@@ -345,6 +380,7 @@ rule bcftools_min_dp_filter:
 
         bcftools index -t {output.vcf}
         """
+
 
 rule prepare_snpeff_inputs:
     input:
@@ -373,6 +409,8 @@ data.dir = ./data
 {SNPEFF_GENOME}.genome : {SNPEFF_GENOME}
 EOF
         """
+
+
 rule build_snpeff_db:
     input:
         config=SNPEFF_CONFIG,
@@ -403,6 +441,7 @@ rule build_snpeff_db:
 
         touch {output.done}
         """
+
 
 rule snpeff_annotate_vcf:
     input:
@@ -437,6 +476,7 @@ rule snpeff_annotate_vcf:
         bcftools index -t {output.vcf}
         """
 
+
 rule extract_frameshift_variants:
     input:
         vcf=SNPEFF_ANN_VCF,
@@ -456,6 +496,7 @@ rule extract_frameshift_variants:
 
         bcftools index -t {output.vcf}
         """
+
 
 rule filter_recurrent_genes:
     input:
