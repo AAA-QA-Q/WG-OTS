@@ -10,8 +10,11 @@ from collections import Counter
 
 def open_maybe_gzip(path, mode="rt"):
     """
-    根据文件后缀自动判断是否为 gzip 文件。
-    .gz 用 gzip.open，其它文件用普通 open。
+    Automatically open a plain text file or a gzip-compressed file
+    based on the file extension.
+
+    Files ending with .gz are opened with gzip.open;
+    all other files are opened with the regular open function.
     """
     if path.endswith(".gz"):
         return gzip.open(path, mode)
@@ -20,19 +23,19 @@ def open_maybe_gzip(path, mode="rt"):
 
 def extract_gene_names_from_info(info_field):
     """
-    从 INFO 字段中提取 snpEff ANN 里的 Gene_Name。
+    Extract Gene_Name values from the snpEff ANN field in the INFO column.
 
-    snpEff ANN 标准格式大致为：
+    The standard snpEff ANN format is approximately:
     Allele|Annotation|Annotation_Impact|Gene_Name|Gene_ID|Feature_Type|...
 
-    这里取第 4 列（下标 3）作为 Gene_Name。
+    Here, the 4th field (index 3) is used as Gene_Name.
 
-    返回值：
-    - 一个 set，表示该行记录涉及到的所有唯一基因名
+    Returns:
+        A set containing all unique gene names associated with this record.
     """
     gene_names = set()
 
-    # INFO 以 ; 分隔，先找到 ANN=...
+    # INFO fields are separated by ';', so first locate ANN=...
     ann_value = None
     for item in info_field.split(";"):
         if item.startswith("ANN="):
@@ -42,7 +45,7 @@ def extract_gene_names_from_info(info_field):
     if ann_value is None or ann_value == "":
         return gene_names
 
-    # 多个注释之间用逗号分隔
+    # Multiple annotations are separated by commas
     ann_entries = ann_value.split(",")
 
     for entry in ann_entries:
@@ -57,11 +60,12 @@ def extract_gene_names_from_info(info_field):
 
 def count_genes_by_record(vcf_path):
     """
-    第一遍读取文件：
-    统计每个基因出现在多少条 VCF 记录中。
+    First pass through the file:
+    Count how many VCF records each gene appears in.
 
-    注意：
-    - 同一条记录里，同一个基因即使出现多次（不同转录本），也只算 1 次。
+    Note:
+        If the same gene appears multiple times within one record
+        (for example, due to multiple transcripts), it is counted only once.
     """
     gene_counter = Counter()
 
@@ -87,13 +91,14 @@ def count_genes_by_record(vcf_path):
 
 def filter_vcf_by_gene_count(vcf_path, output_path, min_records_per_gene=2):
     """
-    第二遍读取文件：
-    只保留那些“至少有一个基因在全文件中出现次数 >= min_records_per_gene”的记录。
+    Second pass through the file:
+    Retain only records where at least one gene appears in the full file
+    at least min_records_per_gene times.
 
-    输出要求：
-    - 不保留 ## 开头的元信息行
-    - 只保留一行 #CHROM ... 表头
-    - 输出为普通文本文件
+    Output rules:
+        - Exclude all metadata lines starting with ##
+        - Retain only the #CHROM header line
+        - Write output as a plain text file
     """
     gene_counter = count_genes_by_record(vcf_path)
 
@@ -105,12 +110,12 @@ def filter_vcf_by_gene_count(vcf_path, output_path, min_records_per_gene=2):
             if not line.strip():
                 continue
 
-            # 只保留最后那一行列名表头
+            # Keep only the final column header line
             if line.startswith("#CHROM"):
                 fout.write(line)
                 continue
 
-            # 其它 ## 元信息行全部跳过
+            # Skip all other metadata lines starting with ##
             if line.startswith("##"):
                 continue
 
@@ -121,12 +126,13 @@ def filter_vcf_by_gene_count(vcf_path, output_path, min_records_per_gene=2):
             info_field = cols[7]
             genes_in_this_record = extract_gene_names_from_info(info_field)
 
-            # 如果这一行没有解析到基因，默认删除
+            # If no gene can be parsed from this record, remove it by default
             if not genes_in_this_record:
                 removed_records += 1
                 continue
 
-            # 只要这一行中任意一个基因在全文件中出现次数 >= 2，就保留
+            # Keep the record if any gene in this line appears at least
+            # min_records_per_gene times in the full file
             keep = any(gene_counter[gene] >= min_records_per_gene for gene in genes_in_this_record)
 
             if keep:
@@ -140,39 +146,39 @@ def filter_vcf_by_gene_count(vcf_path, output_path, min_records_per_gene=2):
 
 def parse_args():
     """
-    解析命令行参数。
+    Parse command-line arguments.
     """
     parser = argparse.ArgumentParser(
         description=(
-            "从 snpEff 注释后的 VCF/VCF.GZ 中，删除只出现 1 次的基因对应记录，"
-            "并只保留 #CHROM 表头。"
+            "Remove records associated with genes that appear only once in an "
+            "snpEff-annotated VCF/VCF.GZ file, while retaining only the #CHROM header."
         )
     )
     parser.add_argument(
         "-i", "--input",
         required=True,
-        help="输入文件，支持 .vcf 或 .vcf.gz"
+        help="Input file, supporting .vcf or .vcf.gz"
     )
     parser.add_argument(
         "-o", "--output",
         required=True,
-        help="输出文件，例如 inj_vs_ctrl.final.cas9.results"
+        help="Output file, for example: inj_vs_ctrl.final.cas9.results"
     )
     parser.add_argument(
         "--min-records-per-gene",
         type=int,
         default=2,
-        help="一个基因至少出现在多少条记录里才保留，默认 2"
+        help="Minimum number of records required for a gene to be retained (default: 2)"
     )
     return parser.parse_args()
 
 
 def main():
     """
-    主函数：
-    - 检查输入文件
-    - 执行过滤
-    - 输出统计信息
+    Main function:
+        - Check whether the input file exists
+        - Run the filtering procedure
+        - Print summary statistics
     """
     args = parse_args()
 
