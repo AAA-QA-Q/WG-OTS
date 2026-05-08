@@ -211,26 +211,27 @@ Key outputs include:
 If you use WG-OTS in a publication, please cite the software used in this workflow as appropriate.
 
 ### Workflow engine
-- Mölder F, Jablonski KP, Letcher B, et al. Sustainable data analysis with Snakemake. *F1000Research*. 2021;10:33.
-- Köster J, Rahmann S. Snakemake—a scalable bioinformatics workflow engine. *Bioinformatics*. 2012;28(19):2520–2522.
+- Snakemake [Mölder, F., Jablonski, K.P., Letcher, B., Hall, M.B., Tomkins-Tinch, C.H., Sochat, V., Forster, J., Lee, S., Twardziok, S.O., Kanitz, A., Wilm, A., Holtgrewe, M., Rahmann, S., Nahnsen, S., Köster, J., 2021. Sustainable data analysis with Snakemake. F1000Res 10, 33.](https://f1000research.com/articles/10-33/v1)
+
 
 ### Read preprocessing
-- [Shifu Chen. fastp 1.0: An ultra-fast all-round tool for FASTQ data quality control and preprocessing. iMeta 4.5 (2025): e70078 https://doi.org/10.1002/imt2.70078](https://onlinelibrary.wiley.com/doi/10.1002/imt2.70078)
+- gffread [Pertea G, Pertea M. GFF utilities: GffRead and GffCompare[J]. F1000Research, 2020, 9: ISCB Comm J-304.] (https://f1000research.com/articles/9-304/v1)
+- fastp [Shifu Chen. fastp 1.0: An ultra-fast all-round tool for FASTQ data quality control and preprocessing. iMeta 4.5 (2025): e70078 https://doi.org/10.1002/imt2.70078](https://onlinelibrary.wiley.com/doi/10.1002/imt2.70078)
 
 ### Read alignment
-- Li H, Durbin R. Fast and accurate short read alignment with Burrows–Wheeler transform. *Bioinformatics*. 2009;25(14):1754–1760.
+- bwa [Li H. (2013) Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM. arXiv:1303.3997v2 [q-bio.GN].](https://arxiv.org/abs/1303.3997)
 
 ### SAM/BAM processing
-- Li H, Handsaker B, Wysoker A, et al. The Sequence Alignment/Map format and SAMtools. *Bioinformatics*. 2009;25(16):2078–2079.
+- samtools [Danecek P, Bonfield J K, Liddle J, et al. Twelve years of SAMtools and BCFtools[J]. Gigascience, 2021, 10(2): giab008.](https://doi.org/10.1093/gigascience/giab008)
 
 ### BCF/VCF processing
-- Danecek P, Bonfield JK, Liddle J, et al. Twelve years of SAMtools and BCFtools. *GigaScience*. 2021;10(2):giab008.
+- bcftools [Danecek P, Bonfield J K, Liddle J, et al. Twelve years of SAMtools and BCFtools[J]. Gigascience, 2021, 10(2): giab008.](https://doi.org/10.1093/gigascience/giab008)
 
 ### Variant annotation
-- Cingolani P, Platts A, Wang LL, et al. A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff. *Fly (Austin)*. 2012;6(2):80–92.
+- Snpeff ["A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff: SNPs in the genome of Drosophila melanogaster strain w1118; iso-2; iso-3.", Cingolani P, Platts A, Wang le L, Coon M, Nguyen T, Wang L, Land SJ, Lu X, Ruden DM. Fly (Austin). 2012 Apr-Jun;6(2):80-92. PMID: 22728672](https://www.tandfonline.com/doi/full/10.4161/fly.19695)
 
 ### Somatic variant calling
-- Park J, Cook DE, Chang P-C, et al. Accurate somatic small variant discovery for multiple sequencing technologies with DeepSomatic.
+- DeepSomatic [DeepSomatic: Accurate somatic small variant discovery for multiple sequencing technologies](https://www.biorxiv.org/content/10.1101/2024.08.16.608331v1)
 
 ---
 
