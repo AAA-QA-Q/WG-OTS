@@ -508,7 +508,7 @@ rule filter_recurrent_genes:
         "env.yaml"
     shell:
         r"""
-        python3 script/filter_recurrent_genes_from_snpeff_vcf.py \
+        python3 script/final_result.py \
           -i {input.vcf} \
           -o {output}
         """
