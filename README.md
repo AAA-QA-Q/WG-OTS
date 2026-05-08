@@ -129,14 +129,6 @@ WG-OTS requires:
 docker pull google/deepsomatic:1.10.0
 ```
 
-If internet access is restricted, users may also prepare the image by other means such as `docker load` from a pre-downloaded image archive.
-
-The current workflow expects the following image name to be available locally:
-
-```text
-google/deepsomatic:1.10.0
-```
-
 ---
 
 ## Input configuration
