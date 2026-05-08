@@ -1,4 +1,14 @@
 [WG-OTS_README.md](https://github.com/user-attachments/files/27503360/WG-OTS_README.md)
+<p align="center">
+  <img src="doc/WG-OTS.png" alt="WG-OTS logo" width="320">
+</p>
+
+<h1 align="center">WG-OTS</h1>
+
+<p align="center">
+  <b>WholeGenome OffTarget Scanner</b><br>
+  A Snakemake workflow for whole-genome off-target detection and annotation from WGS data.
+</p>
 # WG-OTS
 
 **WG-OTS (WholeGenome OffTarget Scanner)** is a Snakemake workflow for whole-genome off-target detection and annotation from whole-genome sequencing (WGS) data.
