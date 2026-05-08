@@ -97,30 +97,6 @@ A custom Python script is used to retain only genes that appear in multiple vari
 
 ---
 
-## Workflow diagram
-
-```mermaid
-flowchart TD
-    A[Input files<br/>REF, GFF, ctrl FASTQ, inj FASTQ] --> B[01_genome<br/>Prepare genome links]
-    B --> C[gffread<br/>Generate genome.cds, genome.pep, genome.gtf]
-    A --> D[02_fastp<br/>Quality control and filtering]
-    D --> E[03_bwa<br/>bwa index]
-    D --> F[03_bwa<br/>bwa mem plus samtools sort]
-    E --> F
-    F --> G[03_bwa<br/>Add read group and index BAM]
-    G --> H[04_deepsomatic<br/>Tumor-normal calling]
-    H --> I[05_bcftools<br/>Keep PASS indels]
-    I --> J[05_bcftools<br/>Filter by MIN_DP]
-    C --> K[06_snpeff<br/>Prepare custom annotation database]
-    J --> L[06_snpeff<br/>Annotate variants]
-    K --> L
-    L --> M[06_snpeff<br/>Extract frameshift_variant]
-    M --> N[06_snpeff<br/>Filter recurrent genes]
-    N --> O[Final result<br/>inj_vs_ctrl.final.cas9.results]
-```
-
----
-
 ## Project structure
 
 ```text
@@ -148,9 +124,9 @@ WG-OTS requires:
 
 ## Important note about DeepSomatic
 
-WG-OTS does **not** automatically install the DeepSomatic Docker image.
+WG-OTS does **not** automatically install the DeepSomatic Docker image.<span style="color:red;">text</span>
 
-Before running the workflow, users must prepare the image manually, for example by pulling it locally:
+Before running the workflow, users must prepare the image manually, for example by pulling it locally:<span style="color:red;">text</span>
 
 ```bash
 docker pull google/deepsomatic:1.10.0
